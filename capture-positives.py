@@ -48,7 +48,7 @@ if __name__ == '__main__':
 	print 'Press Ctrl-C to quit.'
 	while True:
 		# Check if button was pressed or 'c' was received, then capture image.
-		if box.is_button_up() or config.is_letter_input('c'):
+		if box.is_button_up() or is_letter_input('c'):
 			print 'Capturing image...'
 			image = camera.read()
 			# Convert image to grayscale.
