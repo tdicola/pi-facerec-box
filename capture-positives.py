@@ -62,7 +62,7 @@ if __name__ == '__main__':
 			x, y, w, h = result
 			# Crop image as close as possible to desired face aspect ratio.
 			# Might be smaller if face is near edge of image.
-			crop = face.crop_face(image, x, y, w, h)
+			crop = face.crop(image, x, y, w, h)
 			# Save image to file.
 			filename = os.path.join(config.POSITIVE_DIR, POSITIVE_FILE_PREFIX + '%03d.pgm' % count)
 			cv2.imwrite(filename, crop)
