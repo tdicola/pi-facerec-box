@@ -1,53 +1,12 @@
 """Raspberry Pi Face Recognition Treasure Box
-Treasure Box Class
+Treasure Box Script
 Copyright 2013 Tony DiCola 
 """
-import time
-
 import cv2
-import RPIO
-from RPIO import PWM
 
-import picam
 import config
 import face
-
-
-class Box(object):
-	"""Class to represent the state and encapsulate access to the hardware of 
-	the treasure box."""
-	def __init__(self):
-		# Initialize lock servo and button.
-		self.servo = PWM.Servo()
-		RPIO.setup(config.BUTTON_PIN, RPIO.IN)
-		# Set initial box state.
-		self.button_state = RPIO.input(config.BUTTON_PIN)
-		self.is_locked = None
-
-	def lock(self):
-		"""Lock the box."""
-		servo.set_servo(config.LOCK_SERVO_PIN, config.LOCK_SERVO_LOCKED)
-		self.is_locked = True
-
-	def unlock(self):
-		"""Unlock the box."""
-		servo.set_servo(config.LOCK_SERVO_PIN, config.LOCK_SERVO_UNLOCKED)
-		self.is_locked = False
-
-	def is_button_up(self):
-		"""Return True when the box button has transitioned from down to up (i.e.
-		the button was pressed)."""
-		old_state = self.button_state
-		self.button_state = RPIO.input(config.BUTTON_PIN)
-		# Check if transition from down to up
-		if old_state == config.BUTTON_DOWN and self.button_state == config.BUTTON_UP:
-			# Wait 20 milliseconds and measure again to debounce switch.
-			time.sleep(20.0/1000.0)
-			self.button_state = RPIO.input(config.BUTTON_PIN)
-			if self.button_state == config.BUTTON_UP:
-				print 'Button pressed!'
-				return True
-		return False
+import hardware
 
 
 if __name__ == '__main__':
@@ -56,14 +15,11 @@ if __name__ == '__main__':
 	model = cv2.createEigenFaceRecognizer()
 	model.load(config.TRAINING_FILE)
 	print 'Training data loaded!'
-
-	# Setup camera
-	cam = picam.OpenCVCapture()
-
-	box = Box()
-	# Move box to locked position
+	# Initialize camer and box.
+	camera = config.get_camera()
+	box = hardware.Box()
+	# Move box to locked position.
 	box.lock()
-
 	print 'Running box...'
 	print 'Press button to lock (if unlocked), or unlock if the correct face is detected.'
 	print 'Press Ctrl-C to quit.'
@@ -74,28 +30,29 @@ if __name__ == '__main__':
 			if not box.is_locked:
 				# Lock the box if it is unlocked
 				box.lock()
+				print 'Box is now locked.'
 			else:
+				print 'Button pressed, looking for face...'
 				# Check for the positive face and unlock if found.
-				image = cam.read()
+				image = camera.read()
 				# Convert image to grayscale.
 				image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 				# Get coordinates of single face in captured image.
 				result = face.detect_single(image)
 				if result is None:
-					print 'Could not detect single face!'
+					print 'Could not detect single face!  Check the image in capture.pgm' \
+						  ' to see what was captured and try again with only one face visible.'
 					continue
 				x, y, w, h = result
-				# Crop image to face.
-				crop = face.crop_face(image, x, y, w, h)
-				# Resize face to desired size.
-				crop = cv2.resize(crop, 
-						(config.FACE_HEIGHT, config.FACE_WIDTH), 
-						interpolation=cv2.INTER_LANCZOS4)
+				# Crop and resize image to face.
+				crop = face.resize(face.crop(image, x, y, w, h))
 				# Test face against model.
-				[p_label, p_confidence] = model.predict(crop)
-				print "Predicted label = %d (confidence=%.10f)" % (p_label, p_confidence)
-				if p_label == config.POSITIVE_LABEL and p_confidence < config.POSITIVE_THRESHOLD:
-					print 'Matched!'
+				label, confidence = model.predict(crop)
+				print 'Predicted {0} face with confidence {1} (lower is more confident).'.format(
+					'POSITIVE' if label == config.POSITIVE_LABEL else 'NEGATIVE', 
+					confidence)
+				if label == config.POSITIVE_LABEL and confidence < config.POSITIVE_THRESHOLD:
+					print 'Recognized face!'
 					box.unlock()
 				else:
-					print 'Did not match!'
+					print 'Did not recognize face!'

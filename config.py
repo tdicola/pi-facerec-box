@@ -27,7 +27,7 @@ BUTTON_UP   = True   # High signal
 # Start with a value of 3000, but you might need to tweak this value down if 
 # you're getting too many false positives (incorrectly recognized faces), or up
 # if too many false negatives (undetected faces).
-POSITIVE_THRESHOLD = 3000.0
+POSITIVE_THRESHOLD = 2000.0
 
 # File to save and load face recognizer model.
 TRAINING_FILE = 'training.xml'
@@ -58,10 +58,11 @@ HAAR_MIN_SIZE      = (30, 30)
 # Filename to use when saving the most recently captured image for debugging.
 DEBUG_IMAGE = 'capture.pgm'
 
-# Camera to use for capturing images.
-# Use this code for capturing from the Pi camera:
-import picam
-CAMERA = picam.OpenCVCapture()
-# Use this code for capturing from a webcam:
-# import webcam
-# CAMERA = webcam.OpenCVCapture(device_id=0)
+def get_camera():	
+	# Camera to use for capturing images.
+	# Use this code for capturing from the Pi camera:
+	import picam
+	return picam.OpenCVCapture()
+	# Use this code for capturing from a webcam:
+	# import webcam
+	# return webcam.OpenCVCapture(device_id=0)
