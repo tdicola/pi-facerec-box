@@ -85,10 +85,10 @@ if __name__ == '__main__':
 					continue
 				x, y, w, h = result
 				# Crop image to face.
-				crop = face.crop_face(image, x, y, w, h)
+				crop = face.crop(image, x, y, w, h)
 				# Resize face to desired size.
 				crop = cv2.resize(crop, 
-						(config.FACE_HEIGHT, config.FACE_WIDTH), 
+						(config.FACE_WIDTH, config.FACE_HEIGHT), 
 						interpolation=cv2.INTER_LANCZOS4)
 				# Test face against model.
 				[p_label, p_confidence] = model.predict(crop)
