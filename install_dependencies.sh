@@ -37,8 +37,8 @@ if [ `cat /etc/apt/sources.list | grep -c 'jessie'` -eq 0 ] && [ `cat /etc/apt/s
   dist-upgrade
 fi
 
-# Install dependencies and code.
-apt-get -y install python-pip python-opencv python-dev git
+# Install dependencies.
+apt-get -y install python-pip python-opencv python-dev
 pip install picamera
 pip install rpio
 
